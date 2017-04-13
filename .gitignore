@@ -1,4 +1,10 @@
+## prevent users from committing their own version of the RProject
 .Rproj.user
+Siepielski_comment.Rproj
 .Rhistory
 .RData
 .Ruserdata
+## prevent users from committing large files
+*.zip
+*.tif
+*.shp
