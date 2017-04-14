@@ -37,7 +37,7 @@ theme_tidy <- function(){
 
 # Load data ----
 # Edit cells 5833:5862, AN-A0 as non-ASCII text
-dat1 <- read.csv("scripts/users/imyerssmith/Database-S1.csv", na.strings=c("", "na"))
+dat1 <- read.csv("Database-S1.csv", na.strings=c("", "na"))
 
 # p.value entered into the wrong column?
 dat1[grep("<", dat1$Grad.linear.value), "Grad.linear.value"] <- NA
@@ -45,7 +45,7 @@ dat1[grep("<", dat1$Diff.linear.value), "Diff.linear.value"] <- NA
 dat1$Grad.linear.value <- as.numeric(as.character(dat1$Grad.linear.value))
 dat1$Diff.linear.value <- as.numeric(as.character(dat1$Diff.linear.value))
 
-dat2 <- read.csv("scripts/users/imyerssmith/Database-S2.csv", na.strings=c("", "na"))
+dat2 <- read.csv("Database-S2.csv", na.strings=c("", "na"))
 
 # Merge dat1 and dat2
 dat <- merge(dat1, dat2, by.x = c("Final.Index", "Study.ID", "Year"), by.y = c("Final.Index", "Study.ID", "Year"))
@@ -731,7 +731,7 @@ PET.diff.fig.vert.vcv <- ggplot(PET.diff.vert, aes(x = climatevar, y = meanVCV))
 
 # All taxa (Table S5) ----
 
-pdf(file="scripts/users/imyerssmith/Siepielski_VCV_taxa.pdf", width = 15, height = 7)
+pdf(file="figures/Siepielski_VCV_taxa.pdf", width = 15, height = 7)
 
 grid.arrange(temp.grad.fig.invert.vcv, temp.diff.fig.invert.vcv, precip.grad.fig.invert.vcv, precip.diff.fig.invert.vcv, PET.grad.fig.invert.vcv, PET.diff.fig.invert.vcv, temp.grad.fig.plant.vcv, temp.diff.fig.plant.vcv, precip.grad.fig.plant.vcv, precip.diff.fig.plant.vcv, PET.grad.fig.plant.vcv, PET.diff.fig.plant.vcv, temp.grad.fig.vert.vcv, temp.diff.fig.vert.vcv, precip.grad.fig.vert.vcv, precip.grad.fig.vert.vcv, PET.grad.fig.vert.vcv, PET.diff.fig.vert.vcv, ncol = 6, left = "Variance - Covariance Est.", bottom = "Climate Variables")
 
@@ -806,13 +806,7 @@ sel.class.vert <- ggplot(subset(dat, Taxon.group == "V")) +
   theme(axis.line.x = element_line(color="black", size = 0.5),
         axis.line.y = element_line(color="black", size = 0.5))
 
-pdf(file="scripts/users/imyerssmith/Siepielski_trait_classes.pdf", width = 7, height = 12)
-
 grid.arrange(sel.class.invert, sel.class.plant, sel.class.vert)
-
-dev.off()
-
-test <- distinct(cbind.data.frame(as.character(dat$Generic.Trait.Class), as.character(dat$Fitness.Measure.Defined)))
 
 # Map figure ----
 
@@ -903,7 +897,7 @@ PET.fig2 <- ggplot(figdata, aes(x = AvgPET, y = sdPET, colour = Taxon.group, siz
   theme(axis.line.x = element_line(color="black", size = 0.5),
         axis.line.y = element_line(color="black", size = 0.5))
 
-pdf(file="scripts/users/imyerssmith/Siepielski_map.pdf", width = 12, height = 12)
+pdf(file="figures/Siepielski_map.pdf", width = 12, height = 12)
 
 grid.arrange(sel.map, temp.fig, precip.fig, PET.fig, temp.fig2, precip.fig2, PET.fig2, ncol = 3, nrow = 3, layout_matrix = rbind(c(1,1,1), c(2,3,4), c(5,6,7)), heights=c(5, 3, 3))
 
