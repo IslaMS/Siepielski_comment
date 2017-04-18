@@ -119,6 +119,18 @@ fit.diff <- function(diff) {
 
 # All: Run MCMCglmm models - this takes a while! ----
 
+est.grad.all <- grad %>% group_by(climatevar) %>% do(fit.grad(as.data.frame(.)))
+est.grad.all$meanVCV <- as.numeric(as.character(est.grad.all$meanVCV))
+est.grad.all$VCVlower <- as.numeric(as.character(est.grad.all$VCVlower))
+est.grad.all$VCVupper <- as.numeric(as.character(est.grad.all$VCVupper))
+
+est.diff.all <- diff %>% group_by(climatevar) %>% do(fit.diff(as.data.frame(.)))
+est.diff.all$meanVCV <- as.numeric(as.character(est.diff.all$meanVCV))
+est.diff.all$VCVlower <- as.numeric(as.character(est.diff.all$VCVlower))
+est.diff.all$VCVupper <- as.numeric(as.character(est.diff.all$VCVupper))
+
+# All taxa: Run MCMCglmm models - this takes a while! ----
+
 est.grad <- grad %>% group_by(Taxon.group, climatevar) %>% do(fit.grad(as.data.frame(.)))
 est.grad$meanVCV <- as.numeric(as.character(est.grad$meanVCV))
 est.grad$VCVlower <- as.numeric(as.character(est.grad$VCVlower))
@@ -176,6 +188,17 @@ fit.diff <- function(diff.PET1) {
 }
 
 # PET: Run MCMCglmm models - this takes a while! ----
+est.grad.PET.all <- grad.PET1 %>%  group_by(climatevar) %>% do(fit.grad(as.data.frame(.)))
+est.grad.PET.all$meanVCV <- as.numeric(as.character(est.grad.PET.all$meanVCV))
+est.grad.PET.all$VCVlower <- as.numeric(as.character(est.grad.PET.all$VCVlower))
+est.grad.PET.all$VCVupper <- as.numeric(as.character(est.grad.PET.all$VCVupper))
+
+est.diff.PET.all <- diff.PET1 %>%  group_by(climatevar) %>% do(fit.diff(as.data.frame(.)))
+est.diff.PET.all$meanVCV <- as.numeric(as.character(est.diff.PET.all$meanVCV))
+est.diff.PET.all$VCVlower <- as.numeric(as.character(est.diff.PET.all$VCVlower))
+est.diff.PET.all$VCVupper <- as.numeric(as.character(est.diff.PET.all$VCVupper))
+
+# PET taxa: Run MCMCglmm models - this takes a while! ----
 est.grad.PET <- grad.PET1 %>%  group_by(Taxon.group, climatevar) %>% do(fit.grad(as.data.frame(.)))
 est.grad.PET$meanVCV <- as.numeric(as.character(est.grad.PET$meanVCV))
 est.grad.PET$VCVlower <- as.numeric(as.character(est.grad.PET$VCVlower))
@@ -194,32 +217,254 @@ PET.grad$climatevar <- factor(PET.grad$climatevar, levels(PET.grad$climatevar) <
 PET.diff <- est.diff.PET %>% filter(climatevar == "AvgPETStd" | climatevar == "MaxPETStd" | climatevar == "MinPETStd" | climatevar == "sdPETStd")
 PET.diff$climatevar <- factor(PET.diff$climatevar, levels(PET.diff$climatevar) <- c("MinPETStd", "MaxPETStd", "AvgPETStd", "sdPETStd"))
 
+# All: Prepare data for plotting ----
+temp.grad.all <- est.grad.all %>% filter(climatevar == "MinTempMinStd" | climatevar == "MaxTempMaxStd" | climatevar == "AvgTempMeanStd" | climatevar == "SDTempMeanStd")
+temp.grad.all$climatevar <- factor(temp.grad.all$climatevar, levels(temp.grad.all$climatevar) <- c("MinTempMinStd", "MaxTempMaxStd", "AvgTempMeanStd", "SDTempMeanStd"))
+
+precip.grad.all <- est.grad.all %>% filter(climatevar == "MinPrecipStd" | climatevar == "MaxPrecipStd" | climatevar == "AvgPrecipStd" | climatevar == "SDPrecipStd")
+precip.grad.all$climatevar <- factor(precip.grad.all$climatevar, levels(precip.grad.all$climatevar) <- c("MinPrecipStd", "MaxPrecipStd", "AvgPrecipStd", "SDPrecipStd"))
+
+temp.diff.all <- est.diff.all %>% filter(climatevar == "MinTempMinStd" | climatevar == "MaxTempMaxStd" | climatevar == "AvgTempMeanStd" | climatevar == "SDTempMeanStd")
+temp.diff.all$climatevar <- factor(temp.diff.all$climatevar, levels(temp.diff.all$climatevar) <- c("MinTempMinStd", "MaxTempMaxStd", "AvgTempMeanStd", "SDTempMeanStd"))
+
+precip.diff.all <- est.diff.all %>% filter(climatevar == "MinPrecipStd" | climatevar == "MaxPrecipStd" | climatevar == "AvgPrecipStd" | climatevar == "SDPrecipStd")
+precip.diff.all$climatevar <- factor(precip.diff.all$climatevar, levels(precip.diff.all$climatevar) <- c("MinPrecipStd", "MaxPrecipStd", "AvgPrecipStd", "SDPrecipStd"))
+
+PET.grad.all <- est.grad.PET.all %>% filter(climatevar == "AvgPETStd" | climatevar == "MaxPETStd" | climatevar == "MinPETStd" | climatevar == "sdPETStd")
+PET.grad.all$climatevar <- factor(PET.grad.all$climatevar, levels(PET.grad.all$climatevar) <- c("MinPETStd", "MaxPETStd", "AvgPETStd", "sdPETStd"))
+
+PET.diff.all <- est.diff.PET.all %>% filter(climatevar == "AvgPETStd" | climatevar == "MaxPETStd" | climatevar == "MinPETStd" | climatevar == "sdPETStd")
+PET.diff.all$climatevar <- factor(PET.diff.all$climatevar, levels(PET.diff.all$climatevar) <- c("MinPETStd", "MaxPETStd", "AvgPETStd", "sdPETStd"))
+
+# All: Plot model slopes ----
+
+# Temperature Gradients
+temp.grad.fig <- ggplot(temp.grad.all, aes(x = climatevar, y = post.mean)) +
+  scale_y_continuous(limits = c(-0.2, 0.2)) +
+  geom_errorbar(aes(ymin=(l.95.CI), ymax=(u.95.CI)), width=0.2, colour = "darkgrey") +
+  geom_point(size = 2, colour = "darkgrey") +
+  geom_hline(yintercept = 0) +
+  annotate("text", x = 0.5, y = 0.2, label = "A. Grad. Temp.", size=4, hjust=0) +
+  labs(x = "", y = "Slopes") + 
+  theme_tidy() +
+  theme(axis.text.x=element_text(angle=45, hjust = 1)) +
+  theme(axis.line.x = element_line(color="black", size = 0.5),
+        axis.line.y = element_line(color="black", size = 0.5))
+
+# Temperature Differentials
+temp.diff.fig <- ggplot(temp.diff.all, aes(x = climatevar, y = post.mean)) +
+  scale_y_continuous(limits = c(-0.2, 0.2)) +
+  geom_errorbar(aes(ymin=(l.95.CI), ymax=(u.95.CI)), width=0.2, colour = "darkgrey") +
+  geom_point(size = 2, colour = "darkgrey") +
+  geom_hline(yintercept = 0) +
+  annotate("text", x = 0.5, y = 0.2, label = "B. Diff. Temp.", size=4, hjust=0) +
+  labs(x = "", y = "Slopes") + 
+  theme_tidy() +
+  theme(axis.text.x=element_text(angle=45, hjust = 1)) +
+  theme(axis.line.x = element_line(color="black", size = 0.5),
+        axis.line.y = element_line(color="black", size = 0.5))
+
+# Precipitation Gradients
+precip.grad.fig <- ggplot(precip.grad.all, aes(x = climatevar, y = post.mean)) +
+  scale_y_continuous(limits = c(-0.2, 0.2)) +
+  geom_errorbar(aes(ymin=(l.95.CI), ymax=(u.95.CI)), width=0.2, colour = "darkgrey") +
+  geom_point(size = 2, colour = "darkgrey") +
+  geom_hline(yintercept = 0) +
+  annotate("text", x = 0.5, y = 0.2, label = "C. Grad. Precip.", size=4, hjust=0) +
+  labs(x = "", y = "Slopes") + 
+  theme_tidy() +
+  theme(axis.text.x=element_text(angle=45, hjust = 1)) +
+  theme(axis.line.x = element_line(color="black", size = 0.5),
+        axis.line.y = element_line(color="black", size = 0.5))
+
+# Precipitation Differentials
+precip.diff.fig <- ggplot(precip.diff.all, aes(x = climatevar, y = post.mean)) +
+  scale_y_continuous(limits = c(-0.2, 0.2)) +
+  geom_errorbar(aes(ymin=(l.95.CI), ymax=(u.95.CI)), width=0.2, colour = "darkgrey") +
+  geom_point(size = 2, colour = "darkgrey") +
+  geom_hline(yintercept = 0) +
+  annotate("text", x = 0.5, y = 0.2, label = "D. Diff. Precip.", size=4, hjust=0) +
+  labs(x = "", y = "Slopes") + 
+  theme_tidy() +
+  theme(axis.text.x=element_text(angle=45, hjust = 1)) +
+  theme(axis.line.x = element_line(color="black", size = 0.5),
+        axis.line.y = element_line(color="black", size = 0.5))
+
+# PET Gradients
+PET.grad.fig <- ggplot(PET.grad.all, aes(x = climatevar, y = post.mean)) +
+  scale_y_continuous(limits = c(-0.2, 0.2)) +
+  geom_errorbar(aes(ymin=(l.95.CI), ymax=(u.95.CI)), width=0.2, colour = "darkgrey") +
+  geom_point(size = 2, colour = "darkgrey") +
+  geom_hline(yintercept = 0) +
+  annotate("text", x = 0.5, y = 0.2, label = "E. Diff. PET", size=4, hjust=0) +
+  labs(x = "", y = "Slopes") + 
+  theme_tidy() +
+  theme(axis.text.x=element_text(angle=45, hjust = 1)) +
+  theme(axis.line.x = element_line(color="black", size = 0.5),
+        axis.line.y = element_line(color="black", size = 0.5))
+
+# PET Differentials
+PET.diff.fig <- ggplot(PET.diff.all, aes(x = climatevar, y = post.mean)) +
+  scale_y_continuous(limits = c(-0.2, 0.2)) +
+  geom_errorbar(aes(ymin=(l.95.CI), ymax=(u.95.CI)), width=0.2, colour = "darkgrey") +
+  geom_point(size = 2, colour = "darkgrey") +
+  geom_hline(yintercept = 0) +
+  annotate("text", x = 0.5, y = 0.2, label = "F. Diff. PET", size=4, hjust=0) +
+  labs(x = "", y = "Slopes") + 
+  theme_tidy() +
+  theme(axis.text.x=element_text(angle=45, hjust = 1)) +
+  theme(axis.line.x = element_line(color="black", size = 0.5),
+        axis.line.y = element_line(color="black", size = 0.5))
+
+# All: Plot model VCVs ----
+
+# Temperature Gradients
+temp.grad.fig.all.vcv <- ggplot(temp.grad.all, aes(x = climatevar, y = meanVCV)) +
+  scale_y_continuous(limits = c(-0.75, 0.75)) +
+  geom_errorbar(aes(ymin=(VCVlower), ymax=(VCVupper)), width=0.2, colour = "darkgrey") +
+  geom_point(size = 2, colour = "darkgrey") +
+  geom_hline(yintercept = 0) +
+  annotate("text", x = 0.5, y = 0.75, label = "A. Inverts: Grad. Temp.", size=4, hjust=0) +
+  labs(x = "", y = "") + 
+  theme_tidy() +
+  theme(axis.text.x=element_text(angle=45, hjust = 1)) +
+  scale_x_discrete(labels = c("min.", "max.", "mean", "SD")) +
+  theme(axis.title.x=element_blank()) +
+  theme(axis.line.x = element_line(color="black", size = 0.5),
+        axis.line.y = element_line(color="black", size = 0.5))
+
+# Temperature Differentials
+temp.diff.fig.all.vcv <- ggplot(temp.diff.all, aes(x = climatevar, y = meanVCV)) +
+  scale_y_continuous(limits = c(-0.75, 0.75)) +
+  geom_errorbar(aes(ymin=(VCVlower), ymax=(VCVupper)), width=0.2, colour = "darkgrey") +
+  geom_point(size = 2, colour = "darkgrey") +
+  geom_hline(yintercept = 0) +
+  annotate("text", x = 0.5, y = 0.75, label = "B. Inverts: Diff. Temp.", size=4, hjust=0) +
+  labs(x = "", y = "") + 
+  theme_tidy() +
+  theme(axis.text.x=element_text(angle=45, hjust = 1)) +
+  scale_x_discrete(labels = c("min.", "max.", "mean", "SD")) +
+  theme(axis.title.x=element_blank()) +
+  theme(axis.line.x = element_line(color="black", size = 0.5),
+        axis.line.y = element_line(color="black", size = 0.5))
+
+# Precipitation Gradients
+precip.grad.fig.all.vcv <- ggplot(precip.grad.all, aes(x = climatevar, y = meanVCV)) +
+  scale_y_continuous(limits = c(-0.75, 0.75)) +
+  geom_errorbar(aes(ymin=(VCVlower), ymax=(VCVupper)), width=0.2, colour = "darkgrey") +
+  geom_point(size = 2, colour = "darkgrey") +
+  geom_hline(yintercept = 0) +
+  annotate("text", x = 0.5, y = 0.75, label = "C. Inverts: Grad. Precip.", size=4, hjust=0) +
+  labs(x = "", y = "") + 
+  theme_tidy() +
+  theme(axis.text.x=element_text(angle=45, hjust = 1)) +
+  scale_x_discrete(labels = c("min.", "max.", "mean", "SD")) +
+  theme(axis.title.x=element_blank()) +
+  theme(axis.line.x = element_line(color="black", size = 0.5),
+        axis.line.y = element_line(color="black", size = 0.5))
+
+# Preciptation Differentials
+precip.diff.fig.all.vcv <- ggplot(precip.diff.all, aes(x = climatevar, y = meanVCV)) +
+  scale_y_continuous(limits = c(-0.75, 0.75)) +
+  geom_errorbar(aes(ymin=(VCVlower), ymax=(VCVupper)), width=0.2, colour = "darkgrey") +
+  geom_point(size = 2, colour = "darkgrey") +
+  geom_hline(yintercept = 0) +
+  annotate("text", x = 0.5, y = 0.75, label = "D. Inverts: Diff. Precip.", size=4, hjust=0) +
+  labs(x = "", y = "") + 
+  theme_tidy() +
+  theme(axis.text.x=element_text(angle=45, hjust = 1)) +
+  scale_x_discrete(labels = c("min.", "max.", "mean", "SD")) +
+  theme(axis.title.x=element_blank()) +
+  theme(axis.line.x = element_line(color="black", size = 0.5),
+        axis.line.y = element_line(color="black", size = 0.5))
+
+# PET Gradients
+PET.grad.fig.all.vcv <- ggplot(PET.grad.all, aes(x = climatevar, y = meanVCV)) +
+  scale_y_continuous(limits = c(-0.75, 0.75)) +
+  geom_errorbar(aes(ymin=(VCVlower), ymax=(VCVupper)), width=0.2, colour = "darkgrey") +
+  geom_point(size = 2, colour = "darkgrey") +
+  geom_hline(yintercept = 0) +
+  annotate("text", x = 0.5, y = 0.75, label = "E. Inverts: Grad. PET", size=4, hjust=0) +
+  labs(x = "", y = "") + 
+  theme_tidy() +
+  theme(axis.text.x=element_text(angle=45, hjust = 1)) +
+  scale_x_discrete(labels = c("min.", "max.", "mean", "SD")) +
+  theme(axis.title.x=element_blank()) +
+  theme(axis.line.x = element_line(color="black", size = 0.5),
+        axis.line.y = element_line(color="black", size = 0.5))
+
+# PET Differentials
+PET.diff.fig.all.vcv <- ggplot(PET.diff.all, aes(x = climatevar, y = meanVCV)) +
+  scale_y_continuous(limits = c(-0.75, 0.75)) +
+  geom_errorbar(aes(ymin=(VCVlower), ymax=(VCVupper)), width=0.2, colour = "darkgrey") +
+  geom_point(size = 2, colour = "darkgrey") +
+  geom_hline(yintercept = 0) +
+  annotate("text", x = 0.5, y = 0.75, label = "F. Inverts: Diff. PET", size=4, hjust=0) +
+  labs(x = "", y = "") + 
+  theme_tidy() +
+  theme(axis.text.x=element_text(angle=45, hjust = 1)) +
+  scale_x_discrete(labels = c("min.", "max.", "mean", "SD")) +
+  theme(axis.title.x=element_blank()) +
+  theme(axis.line.x = element_line(color="black", size = 0.5),
+        axis.line.y = element_line(color="black", size = 0.5))
+
+pdf(file="figures/Siepielski_VCV_all.pdf", width = 5.5, height = 7)
+
+grid.arrange(temp.grad.fig.all.vcv, temp.diff.fig.all.vcv, precip.grad.fig.all.vcv, precip.diff.fig.all.vcv, PET.grad.fig.all.vcv, PET.diff.fig.all.vcv, ncol = 2, left = "Variance - Covariance Est.", bottom = "Climate Variables")
+
+dev.off()
+
 # Taxa: Prepare data for plotting ----
 temp.grad.invert <- est.grad %>% subset(Taxon.group == "I") %>% filter(climatevar == "MinTempMinStd" | climatevar == "MaxTempMaxStd" | climatevar == "AvgTempMeanStd" | climatevar == "SDTempMeanStd")
+temp.grad.invert$climatevar <- factor(temp.grad.invert$climatevar, levels(temp.grad.invert$climatevar) <- c("MinTempMinStd", "MaxTempMaxStd", "AvgTempMeanStd", "SDTempMeanStd"))
+
 precip.grad.invert <- est.grad %>% subset(Taxon.group == "I") %>% filter(climatevar == "MinPrecipStd" | climatevar == "MaxPrecipStd" | climatevar == "AvgPrecipStd" | climatevar == "SDPrecipStd")
+precip.grad.invert$climatevar <- factor(precip.grad.invert$climatevar, levels(precip.grad.invert$climatevar) <- c("MinPrecipStd", "MaxPrecipStd", "AvgPrecipStd", "SDPrecipStd"))
+
 temp.diff.invert <- est.diff %>% subset(Taxon.group == "I") %>% filter(climatevar == "MinTempMinStd" | climatevar == "MaxTempMaxStd" | climatevar == "AvgTempMeanStd" | climatevar == "SDTempMeanStd")
+temp.diff.invert$climatevar <- factor(temp.diff.invert$climatevar, levels(temp.diff.invert$climatevar) <- c("MinTempMinStd", "MaxTempMaxStd", "AvgTempMeanStd", "SDTempMeanStd"))
+
 precip.diff.invert <- est.diff %>% subset(Taxon.group == "I") %>% filter(climatevar == "MinPrecipStd" | climatevar == "MaxPrecipStd" | climatevar == "AvgPrecipStd" | climatevar == "SDPrecipStd")
+precip.diff.invert$climatevar <- factor(precip.diff.invert$climatevar, levels(precip.diff.invert$climatevar) <- c("MinPrecipStd", "MaxPrecipStd", "AvgPrecipStd", "SDPrecipStd"))
+
 PET.grad.invert <- PET.grad %>% subset(Taxon.group == "I")
+
 PET.diff.invert <- PET.diff %>% subset(Taxon.group == "I")
 
 temp.grad.plant <- temp.grad %>% subset(Taxon.group == "P") %>% filter(climatevar == "MinTempMinStd" | climatevar == "MaxTempMaxStd" | climatevar == "AvgTempMeanStd" | climatevar == "SDTempMeanStd")
+temp.grad.plant$climatevar <- factor(temp.grad.plant$climatevar, levels(temp.grad.plant$climatevar) <- c("MinTempMinStd", "MaxTempMaxStd", "AvgTempMeanStd", "SDTempMeanStd"))
+
 precip.grad.plant <- precip.grad %>% subset(Taxon.group == "P") %>% filter(climatevar == "MinPrecipStd" | climatevar == "MaxPrecipStd" | climatevar == "AvgPrecipStd" | climatevar == "SDPrecipStd")
+precip.grad.plant$climatevar <- factor(precip.grad.plant$climatevar, levels(precip.grad.plant$climatevar) <- c("MinPrecipStd", "MaxPrecipStd", "AvgPrecipStd", "SDPrecipStd"))
+
 temp.diff.plant <- temp.diff %>% subset(Taxon.group == "P") %>% filter(climatevar == "MinTempMinStd" | climatevar == "MaxTempMaxStd" | climatevar == "AvgTempMeanStd" | climatevar == "SDTempMeanStd")
+temp.diff.plant$climatevar <- factor(temp.diff.plant$climatevar, levels(temp.diff.plant$climatevar) <- c("MinTempMinStd", "MaxTempMaxStd", "AvgTempMeanStd", "SDTempMeanStd"))
+
 precip.diff.plant <- precip.diff %>% subset(Taxon.group == "P") %>% filter(climatevar == "MinPrecipStd" | climatevar == "MaxPrecipStd" | climatevar == "AvgPrecipStd" | climatevar == "SDPrecipStd")
+precip.diff.plant$climatevar <- factor(precip.diff.plant$climatevar, levels(precip.diff.plant$climatevar) <- c("MinPrecipStd", "MaxPrecipStd", "AvgPrecipStd", "SDPrecipStd"))
+
 PET.grad.plant <- PET.grad %>% subset(Taxon.group == "P")
 PET.diff.plant <- PET.diff %>% subset(Taxon.group == "P")
 
 temp.grad.vert <- temp.grad %>% subset(Taxon.group == "V") %>% filter(climatevar == "MinTempMinStd" | climatevar == "MaxTempMaxStd" | climatevar == "AvgTempMeanStd" | climatevar == "SDTempMeanStd")
+temp.grad.vert$climatevar <- factor(temp.grad.vert$climatevar, levels(temp.grad.vert$climatevar) <- c("MinTempMinStd", "MaxTempMaxStd", "AvgTempMeanStd", "SDTempMeanStd"))
+
 precip.grad.vert <- precip.grad %>% subset(Taxon.group == "V") %>% filter(climatevar == "MinPrecipStd" | climatevar == "MaxPrecipStd" | climatevar == "AvgPrecipStd" | climatevar == "SDPrecipStd")
+precip.grad.vert$climatevar <- factor(precip.grad.vert$climatevar, levels(precip.grad.vert$climatevar) <- c("MinPrecipStd", "MaxPrecipStd", "AvgPrecipStd", "SDPrecipStd"))
+
 temp.diff.vert <- temp.diff %>% subset(Taxon.group == "V") %>% filter(climatevar == "MinTempMinStd" | climatevar == "MaxTempMaxStd" | climatevar == "AvgTempMeanStd" | climatevar == "SDTempMeanStd")
+temp.diff.vert$climatevar <- factor(temp.diff.vert$climatevar, levels(temp.diff.vert$climatevar) <- c("MinTempMinStd", "MaxTempMaxStd", "AvgTempMeanStd", "SDTempMeanStd"))
+
 precip.diff.vert <- precip.diff %>% subset(Taxon.group == "V") %>% filter(climatevar == "MinPrecipStd" | climatevar == "MaxPrecipStd" | climatevar == "AvgPrecipStd" | climatevar == "SDPrecipStd")
+precip.diff.vert$climatevar <- factor(precip.diff.vert$climatevar, levels(precip.diff.vert$climatevar) <- c("MinPrecipStd", "MaxPrecipStd", "AvgPrecipStd", "SDPrecipStd"))
+
 PET.grad.vert <- PET.grad %>% subset(Taxon.group == "V")
 PET.diff.vert <- PET.diff %>% subset(Taxon.group == "V")
 
 # Inverts: Plot model slopes ----
 
 # Temperature Gradients
-temp.grad.fig <- ggplot(temp.grad.invert, aes(x = climatevar, y = post.mean)) +
+temp.grad.fig.invert <- ggplot(temp.grad.invert, aes(x = climatevar, y = post.mean)) +
   scale_y_continuous(limits = c(-0.2, 0.2)) +
   geom_errorbar(aes(ymin=(l.95.CI), ymax=(u.95.CI)), width=0.2, colour = "orange") +
   geom_point(size = 2, colour = "orange") +
@@ -232,7 +477,7 @@ temp.grad.fig <- ggplot(temp.grad.invert, aes(x = climatevar, y = post.mean)) +
         axis.line.y = element_line(color="black", size = 0.5))
 
 # Temperature Differentials
-temp.diff.fig <- ggplot(temp.diff.invert, aes(x = climatevar, y = post.mean)) +
+temp.diff.fig.invert <- ggplot(temp.diff.invert, aes(x = climatevar, y = post.mean)) +
   scale_y_continuous(limits = c(-0.2, 0.2)) +
   geom_errorbar(aes(ymin=(l.95.CI), ymax=(u.95.CI)), width=0.2, colour = "orange") +
   geom_point(size = 2, colour = "orange") +
@@ -245,7 +490,7 @@ temp.diff.fig <- ggplot(temp.diff.invert, aes(x = climatevar, y = post.mean)) +
         axis.line.y = element_line(color="black", size = 0.5))
 
 # Precipitation Gradients
-precip.grad.fig <- ggplot(precip.grad.invert, aes(x = climatevar, y = post.mean)) +
+precip.grad.fig.invert <- ggplot(precip.grad.invert, aes(x = climatevar, y = post.mean)) +
   scale_y_continuous(limits = c(-0.2, 0.2)) +
   geom_errorbar(aes(ymin=(l.95.CI), ymax=(u.95.CI)), width=0.2, colour = "orange") +
   geom_point(size = 2, colour = "orange") +
@@ -258,7 +503,7 @@ precip.grad.fig <- ggplot(precip.grad.invert, aes(x = climatevar, y = post.mean)
         axis.line.y = element_line(color="black", size = 0.5))
 
 # Precipitation Differentials
-precip.diff.fig <- ggplot(precip.diff.invert, aes(x = climatevar, y = post.mean)) +
+precip.diff.fig.invert <- ggplot(precip.diff.invert, aes(x = climatevar, y = post.mean)) +
   scale_y_continuous(limits = c(-0.2, 0.2)) +
   geom_errorbar(aes(ymin=(l.95.CI), ymax=(u.95.CI)), width=0.2, colour = "orange") +
   geom_point(size = 2, colour = "orange") +
@@ -271,7 +516,7 @@ precip.diff.fig <- ggplot(precip.diff.invert, aes(x = climatevar, y = post.mean)
         axis.line.y = element_line(color="black", size = 0.5))
 
 # PET Gradients
-PET.grad.fig.invert.vcv <- ggplot(PET.grad.invert, aes(x = climatevar, y = post.mean)) +
+PET.grad.fig.invert <- ggplot(PET.grad.invert, aes(x = climatevar, y = post.mean)) +
   scale_y_continuous(limits = c(-0.2, 0.2)) +
   geom_errorbar(aes(ymin=(l.95.CI), ymax=(u.95.CI)), width=0.2, colour = "orange") +
   geom_point(size = 2, colour = "orange") +
@@ -284,7 +529,7 @@ PET.grad.fig.invert.vcv <- ggplot(PET.grad.invert, aes(x = climatevar, y = post.
         axis.line.y = element_line(color="black", size = 0.5))
 
 # PET Differentials
-PET.diff.fig.invert.vcv <- ggplot(PET.diff.invert, aes(x = climatevar, y = post.mean)) +
+PET.diff.fig.invert <- ggplot(PET.diff.invert, aes(x = climatevar, y = post.mean)) +
   scale_y_continuous(limits = c(-0.2, 0.2)) +
   geom_errorbar(aes(ymin=(l.95.CI), ymax=(u.95.CI)), width=0.2, colour = "orange") +
   geom_point(size = 2, colour = "orange") +
@@ -391,7 +636,7 @@ PET.diff.fig.invert.vcv <- ggplot(PET.diff.invert, aes(x = climatevar, y = meanV
 # Plants: Plot model slopes ----
 
 # Temperature Gradients
-temp.grad.fig <- ggplot(temp.grad.plant, aes(x = climatevar, y = post.mean)) +
+temp.grad.fig.plant <- ggplot(temp.grad.plant, aes(x = climatevar, y = post.mean)) +
   scale_y_continuous(limits = c(-0.08, 0.08)) +
   geom_errorbar(aes(ymin=(l.95.CI), ymax=(u.95.CI)), width=0.2, colour = "green4") +
   geom_point(size = 2, colour = "green4") +
@@ -404,7 +649,7 @@ temp.grad.fig <- ggplot(temp.grad.plant, aes(x = climatevar, y = post.mean)) +
         axis.line.y = element_line(color="black", size = 0.5))
 
 # Temperature Differentials
-temp.diff.fig <- ggplot(temp.diff.plant, aes(x = climatevar, y = post.mean)) +
+temp.diff.fig.plant <- ggplot(temp.diff.plant, aes(x = climatevar, y = post.mean)) +
   scale_y_continuous(limits = c(-0.08, 0.08)) +
   geom_errorbar(aes(ymin=(l.95.CI), ymax=(u.95.CI)), width=0.2, colour = "green4") +
   geom_point(size = 2, colour = "green4") +
@@ -417,7 +662,7 @@ temp.diff.fig <- ggplot(temp.diff.plant, aes(x = climatevar, y = post.mean)) +
         axis.line.y = element_line(color="black", size = 0.5))
 
 # Precipitation Gradients
-precip.grad.fig <- ggplot(precip.grad.plant, aes(x = climatevar, y = post.mean)) +
+precip.grad.fig.plant <- ggplot(precip.grad.plant, aes(x = climatevar, y = post.mean)) +
   scale_y_continuous(limits = c(-0.08, 0.08)) +
   geom_errorbar(aes(ymin=(l.95.CI), ymax=(u.95.CI)), width=0.2, colour = "green4") +
   geom_point(size = 2, colour = "green4") +
@@ -430,7 +675,7 @@ precip.grad.fig <- ggplot(precip.grad.plant, aes(x = climatevar, y = post.mean))
         axis.line.y = element_line(color="black", size = 0.5))
 
 # Precipitation Differentials
-precip.diff.fig <- ggplot(precip.diff.plant, aes(x = climatevar, y = post.mean)) +
+precip.diff.fig.plant <- ggplot(precip.diff.plant, aes(x = climatevar, y = post.mean)) +
   scale_y_continuous(limits = c(-0.08, 0.08)) +
   geom_errorbar(aes(ymin=(l.95.CI), ymax=(u.95.CI)), width=0.2, colour = "green4") +
   geom_point(size = 2, colour = "green4") +
@@ -443,7 +688,7 @@ precip.diff.fig <- ggplot(precip.diff.plant, aes(x = climatevar, y = post.mean))
         axis.line.y = element_line(color="black", size = 0.5))
 
 # PET Gradients
-PET.grad.fig.plant.vcv <- ggplot(PET.grad.plant, aes(x = climatevar, y = post.mean)) +
+PET.grad.fig.plant <- ggplot(PET.grad.plant, aes(x = climatevar, y = post.mean)) +
   scale_y_continuous(limits = c(-0.08, 0.08)) +
   geom_errorbar(aes(ymin=(l.95.CI), ymax=(u.95.CI)), width=0.2, colour = "green4") +
   geom_point(size = 2, colour = "green4") +
@@ -456,7 +701,7 @@ PET.grad.fig.plant.vcv <- ggplot(PET.grad.plant, aes(x = climatevar, y = post.me
         axis.line.y = element_line(color="black", size = 0.5))
 
 # PET Differentials
-PET.diff.fig.plant.vcv <- ggplot(PET.diff.plant, aes(x = climatevar, y = post.mean)) +
+PET.diff.fig.plant <- ggplot(PET.diff.plant, aes(x = climatevar, y = post.mean)) +
   scale_y_continuous(limits = c(-0.08, 0.08)) +
   geom_errorbar(aes(ymin=(l.95.CI), ymax=(u.95.CI)), width=0.2, colour = "green4") +
   geom_point(size = 2, colour = "green4") +
@@ -563,7 +808,7 @@ PET.diff.fig.plant.vcv <- ggplot(PET.diff.plant, aes(x = climatevar, y = meanVCV
 # Verts: Plot model slopes ----
 
 # Temperature Gradients
-temp.grad.fig <- ggplot(temp.grad.vert, aes(x = climatevar, y = post.mean)) +
+temp.grad.fig.vert <- ggplot(temp.grad.vert, aes(x = climatevar, y = post.mean)) +
   scale_y_continuous(limits = c(-0.08, 0.08)) +
   geom_errorbar(aes(ymin=(l.95.CI), ymax=(u.95.CI)), width=0.2, colour = "blue3") +
   geom_point(size = 2, colour = "blue3") +
@@ -576,7 +821,7 @@ temp.grad.fig <- ggplot(temp.grad.vert, aes(x = climatevar, y = post.mean)) +
         axis.line.y = element_line(color="black", size = 0.5))
 
 # Temperature Differentials
-temp.diff.fig <- ggplot(temp.diff.vert, aes(x = climatevar, y = post.mean)) +
+temp.diff.fig.vert <- ggplot(temp.diff.vert, aes(x = climatevar, y = post.mean)) +
   scale_y_continuous(limits = c(-0.08, 0.08)) +
   geom_errorbar(aes(ymin=(l.95.CI), ymax=(u.95.CI)), width=0.2, colour = "blue3") +
   geom_point(size = 2, colour = "blue3") +
@@ -589,7 +834,7 @@ temp.diff.fig <- ggplot(temp.diff.vert, aes(x = climatevar, y = post.mean)) +
         axis.line.y = element_line(color="black", size = 0.5))
 
 # Precipitation Gradients
-precip.grad.fig <- ggplot(precip.grad.vert, aes(x = climatevar, y = post.mean)) +
+precip.grad.fig.vert <- ggplot(precip.grad.vert, aes(x = climatevar, y = post.mean)) +
   scale_y_continuous(limits = c(-0.08, 0.08)) +
   geom_errorbar(aes(ymin=(l.95.CI), ymax=(u.95.CI)), width=0.2, colour = "blue3") +
   geom_point(size = 2, colour = "blue3") +
@@ -602,7 +847,7 @@ precip.grad.fig <- ggplot(precip.grad.vert, aes(x = climatevar, y = post.mean)) 
         axis.line.y = element_line(color="black", size = 0.5))
 
 # Precipitation Differentials
-precip.diff.fig <- ggplot(precip.diff.vert, aes(x = climatevar, y = post.mean)) +
+precip.diff.fig.vert <- ggplot(precip.diff.vert, aes(x = climatevar, y = post.mean)) +
   scale_y_continuous(limits = c(-0.08, 0.08)) +
   geom_errorbar(aes(ymin=(l.95.CI), ymax=(u.95.CI)), width=0.2, colour = "blue3") +
   geom_point(size = 2, colour = "blue3") +
@@ -615,7 +860,7 @@ precip.diff.fig <- ggplot(precip.diff.vert, aes(x = climatevar, y = post.mean)) 
         axis.line.y = element_line(color="black", size = 0.5))
 
 # PET Differentials
-PET.grad.fig <- ggplot(PET.grad.vert, aes(x = climatevar, y = post.mean)) +
+PET.grad.fig.vert <- ggplot(PET.grad.vert, aes(x = climatevar, y = post.mean)) +
   scale_y_continuous(limits = c(-0.08, 0.08)) +
   geom_errorbar(aes(ymin=(l.95.CI), ymax=(u.95.CI)), width=0.2, colour = "blue3") +
   geom_point(size = 2, colour = "blue3") +
@@ -628,7 +873,7 @@ PET.grad.fig <- ggplot(PET.grad.vert, aes(x = climatevar, y = post.mean)) +
         axis.line.y = element_line(color="black", size = 0.5))
 
 # PET Differentials
-PET.diff.fig <- ggplot(PET.diff.vert, aes(x = climatevar, y = post.mean)) +
+PET.diff.fig.vert <- ggplot(PET.diff.vert, aes(x = climatevar, y = post.mean)) +
   scale_y_continuous(limits = c(-0.08, 0.08)) +
   geom_errorbar(aes(ymin=(l.95.CI), ymax=(u.95.CI)), width=0.2, colour = "blue3") +
   geom_point(size = 2, colour = "blue3") +
