@@ -69,6 +69,9 @@ STD.diff <- function(x){unlist(tapply(x, dat.diff$study.trait, function(x){if(le
 
 dat.PET.novariance <- dat %>% group_by(Study.ID, study.trait) %>% mutate(range = (max(AvgPET)-min(AvgPET))) %>% ungroup() %>% distinct(Study.ID, range) %>% subset(range == 0) %>% arrange(Study.ID)
 
+# Plot figures of PET data by Study.ID and study.trait
+dat %>% group_by(Study.ID, study.trait) %>% do(ggsave(ggplot(.,aes(x = AvgPET, y = Grad.linear.value)) + geom_point(colour="darkblue") + theme_tidy() + xlab("Mean PET"), filename = gsub("", "", paste("figures/PET/", unique(as.character(.$Study.ID)),"_",unique(as.character(.$study.trait)), ".pdf", sep="")), device="pdf"))
+
 no.var.PET.study.number <- length(unique(dat.PET.novariance$Study.ID))
 total.study.number <- length(unique(dat$Study.ID))
 
