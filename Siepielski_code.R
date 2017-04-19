@@ -324,7 +324,7 @@ temp.grad.fig.all.vcv <- ggplot(temp.grad.all, aes(x = climatevar, y = meanVCV))
   geom_errorbar(aes(ymin=(VCVlower), ymax=(VCVupper)), width=0.2, colour = "darkgrey") +
   geom_point(size = 2, colour = "darkgrey") +
   geom_hline(yintercept = 0) +
-  annotate("text", x = 0.5, y = 0.75, label = "A. Inverts: Grad. Temp.", size=4, hjust=0) +
+  annotate("text", x = 0.5, y = 0.75, label = "A. Grad. Temp.", size=4, hjust=0) +
   labs(x = "", y = "") + 
   theme_tidy() +
   theme(axis.text.x=element_text(angle=45, hjust = 1)) +
@@ -339,7 +339,7 @@ temp.diff.fig.all.vcv <- ggplot(temp.diff.all, aes(x = climatevar, y = meanVCV))
   geom_errorbar(aes(ymin=(VCVlower), ymax=(VCVupper)), width=0.2, colour = "darkgrey") +
   geom_point(size = 2, colour = "darkgrey") +
   geom_hline(yintercept = 0) +
-  annotate("text", x = 0.5, y = 0.75, label = "B. Inverts: Diff. Temp.", size=4, hjust=0) +
+  annotate("text", x = 0.5, y = 0.75, label = "B. Diff. Temp.", size=4, hjust=0) +
   labs(x = "", y = "") + 
   theme_tidy() +
   theme(axis.text.x=element_text(angle=45, hjust = 1)) +
@@ -354,7 +354,7 @@ precip.grad.fig.all.vcv <- ggplot(precip.grad.all, aes(x = climatevar, y = meanV
   geom_errorbar(aes(ymin=(VCVlower), ymax=(VCVupper)), width=0.2, colour = "darkgrey") +
   geom_point(size = 2, colour = "darkgrey") +
   geom_hline(yintercept = 0) +
-  annotate("text", x = 0.5, y = 0.75, label = "C. Inverts: Grad. Precip.", size=4, hjust=0) +
+  annotate("text", x = 0.5, y = 0.75, label = "C. Grad. Precip.", size=4, hjust=0) +
   labs(x = "", y = "") + 
   theme_tidy() +
   theme(axis.text.x=element_text(angle=45, hjust = 1)) +
@@ -369,7 +369,7 @@ precip.diff.fig.all.vcv <- ggplot(precip.diff.all, aes(x = climatevar, y = meanV
   geom_errorbar(aes(ymin=(VCVlower), ymax=(VCVupper)), width=0.2, colour = "darkgrey") +
   geom_point(size = 2, colour = "darkgrey") +
   geom_hline(yintercept = 0) +
-  annotate("text", x = 0.5, y = 0.75, label = "D. Inverts: Diff. Precip.", size=4, hjust=0) +
+  annotate("text", x = 0.5, y = 0.75, label = "D. Diff. Precip.", size=4, hjust=0) +
   labs(x = "", y = "") + 
   theme_tidy() +
   theme(axis.text.x=element_text(angle=45, hjust = 1)) +
@@ -384,7 +384,7 @@ PET.grad.fig.all.vcv <- ggplot(PET.grad.all, aes(x = climatevar, y = meanVCV)) +
   geom_errorbar(aes(ymin=(VCVlower), ymax=(VCVupper)), width=0.2, colour = "darkgrey") +
   geom_point(size = 2, colour = "darkgrey") +
   geom_hline(yintercept = 0) +
-  annotate("text", x = 0.5, y = 0.75, label = "E. Inverts: Grad. PET", size=4, hjust=0) +
+  annotate("text", x = 0.5, y = 0.75, label = "E. Grad. PET", size=4, hjust=0) +
   labs(x = "", y = "") + 
   theme_tidy() +
   theme(axis.text.x=element_text(angle=45, hjust = 1)) +
@@ -399,7 +399,7 @@ PET.diff.fig.all.vcv <- ggplot(PET.diff.all, aes(x = climatevar, y = meanVCV)) +
   geom_errorbar(aes(ymin=(VCVlower), ymax=(VCVupper)), width=0.2, colour = "darkgrey") +
   geom_point(size = 2, colour = "darkgrey") +
   geom_hline(yintercept = 0) +
-  annotate("text", x = 0.5, y = 0.75, label = "F. Inverts: Diff. PET", size=4, hjust=0) +
+  annotate("text", x = 0.5, y = 0.75, label = "F. Diff. PET", size=4, hjust=0) +
   labs(x = "", y = "") + 
   theme_tidy() +
   theme(axis.text.x=element_text(angle=45, hjust = 1)) +
