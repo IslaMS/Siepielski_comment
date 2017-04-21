@@ -54,8 +54,8 @@ dat <- merge(dat1, dat2, by.x = c("Final.Index", "Study.ID", "Year"), by.y = c("
 dat$lmer.units <- as.factor(1:nrow(dat))
 dat$lmer.units[2] <- "1"
 
-# Order data.farme by study/trait
-dat$study.trait <- as.factor(paste(dat$Study.ID, dat$Trait))
+# Order data.farme by study/trait (study-trait-sex-fitness.measure-season-age combination)
+dat$study.trait <- as.factor(paste(dat$Study.ID, "_", dat$Trait, "_", dat$Fitness.Measure, "_", dat$Sex, "_", dat$age, "_", dat$Season))
 dat <- dat[order(dat$study.trait),]
 
 # Remove rows wth misisng data
