@@ -18,8 +18,8 @@ library(coda)
 
 theme_tidy <- function(){
   theme_bw() +
-    theme(axis.text = element_text(size = 12), 
-          axis.title = element_text(size = 14),
+    theme(axis.text = element_text(color="black", size = 12), 
+          axis.title = element_text(color="black", size = 14),
           axis.line.x = element_line(color="black"), axis.line.y = element_line(color="black"),
           panel.border = element_blank(),
           panel.grid.major.x = element_blank(),                                          
@@ -27,8 +27,8 @@ theme_tidy <- function(){
           panel.grid.minor.y = element_blank(),
           panel.grid.major.y = element_blank(),  
           plot.margin = unit(c(0.2, 0.2, 0.2, 0.2), units = , "cm"),
-          plot.title = element_text(size=14, vjust=1, hjust=0.5),
-          legend.text = element_text(size=12, face="italic"),          
+          plot.title = element_text(color="black", size=14, vjust=1, hjust=0.5),
+          legend.text = element_text(color="black", size=12, face="italic"),          
           legend.title = element_blank(),                              
           legend.position = c(0.9, 0.9), 
           legend.key = element_blank(),
@@ -62,6 +62,10 @@ dat <- dat[order(dat$study.trait),]
 dat.grad <- subset(dat, !is.na(Grad.linear.value) & !is.na(Grad.linear.StErr) & !is.na(AvgTempMean) & !is.na(SDTempMean) & !is.na(MinTempMin) & !is.na(MaxTempMax) & !is.na(AvgPrecip) & !is.na(MaxPrecip) & !is.na(MinPrecip) & !is.na(SDPrecip))
 dat.diff <- subset(dat, !is.na(Diff.linear.value) & !is.na(Diff.linear.StErr) & !is.na(AvgTempMean) & !is.na(SDTempMean) & !is.na(MinTempMin) & !is.na(MaxTempMax) & !is.na(AvgPrecip) & !is.na(MaxPrecip) & !is.na(MinPrecip) & !is.na(SDPrecip))
 
+# Remove data with less than three values
+dat.grad <- dat.grad %>% group_by(Study.ID, study.trait) %>% filter((length(unique(AvgPET)) > 2) & (sd(AvgPET) > 0) & (length(unique(AvgTempMean)) > 2) & (sd(AvgTempMean) > 0) & (length(unique(AvgPrecip)) > 2) & (sd(AvgPrecip) > 0))
+dat.diff <- dat.diff %>% group_by(Study.ID, study.trait) %>% filter(length(unique(AvgPET)) > 2 & length(unique(AvgTempMean)) > 2 & length(unique(AvgPrecip)) > 2)
+
 # Standardise climate within Study/Traits ----
 
 STD.grad <- function(x){unlist(tapply(x, dat.grad$study.trait, function(x){if(length(x)>1 & var(x)>0){scale(x)}else{rep(0, length(x))}}))}
@@ -70,7 +74,16 @@ STD.diff <- function(x){unlist(tapply(x, dat.diff$study.trait, function(x){if(le
 dat.PET.novariance <- dat %>% group_by(Study.ID, study.trait) %>% mutate(range = (max(AvgPET)-min(AvgPET))) %>% ungroup() %>% distinct(Study.ID, range) %>% subset(range == 0) %>% arrange(Study.ID)
 
 # Plot figures of PET data by Study.ID and study.trait
-dat %>% group_by(Study.ID, study.trait) %>% do(ggsave(ggplot(.,aes(x = AvgPET, y = Grad.linear.value)) + geom_point(colour="darkblue") + theme_tidy() + xlab("Mean PET"), filename = gsub("", "", paste("figures/PET/", unique(as.character(.$Study.ID)),"_",unique(as.character(.$study.trait)), ".pdf", sep="")), device="pdf"))
+dat.grad %>% group_by(Study.ID, study.trait) %>% filter(is.finite(Grad.linear.value)) %>% do(ggsave(ggplot(.,aes(x = AvgPET, y = Grad.linear.value)) + geom_point(colour="darkblue") + theme_tidy() + xlab("Mean PET"), filename = gsub("", "", paste("figures/PET/", unique(as.character(.$Study.ID)),"_",unique(as.character(.$study.trait)), ".pdf", sep="")), device="pdf"))
+dat.diff %>% group_by(Study.ID, study.trait) %>% filter(is.finite(Diff.linear.value)) %>% do(ggsave(ggplot(.,aes(x = AvgPET, y = Diff.linear.value)) + geom_point(colour="red3") + theme_tidy() + xlab("Mean PET"), filename = gsub("", "", paste("figures/PET/", unique(as.character(.$Study.ID)),"_",unique(as.character(.$study.trait)), ".pdf", sep="")), device="pdf"))
+
+# Plot figures of AvgPrecip data by Study.ID and study.trait
+dat.grad %>% group_by(Study.ID, study.trait) %>% filter(is.finite(Grad.linear.value)) %>% do(ggsave(ggplot(.,aes(x = AvgPrecip, y = Grad.linear.value)) + geom_point(colour="darkblue") + theme_tidy() + xlab("Mean Precip"), filename = gsub("", "", paste("figures/AvgPrecip/", unique(as.character(.$Study.ID)),"_",unique(as.character(.$study.trait)), ".pdf", sep="")), device="pdf"))
+dat.diff %>% group_by(Study.ID, study.trait) %>% filter(is.finite(Diff.linear.value)) %>% do(ggsave(ggplot(.,aes(x = AvgPrecip, y = Diff.linear.value)) + geom_point(colour="red3") + theme_tidy() + xlab("Mean Precip"), filename = gsub("", "", paste("figures/AvgPrecip/", unique(as.character(.$Study.ID)),"_",unique(as.character(.$study.trait)), ".pdf", sep="")), device="pdf"))
+
+# Plot figures of AvgTempMean data by Study.ID and study.trait
+dat. %>% group_by(Study.ID, study.trait) %>% filter(is.finite(Grad.linear.value)) %>% do(ggsave(ggplot(.,aes(x = AvgTempMean, y = Grad.linear.value)) + geom_point(colour="darkblue") + theme_tidy() + xlab("Mean Temp"), filename = gsub("", "", paste("figures/AvgTempMean/", unique(as.character(.$Study.ID)),"_",unique(as.character(.$study.trait)), ".pdf", sep="")), device="pdf"))
+dat %>% group_by(Study.ID, study.trait) %>% filter(is.finite(Diff.linear.value)) %>% do(ggsave(ggplot(.,aes(x = AvgTempMean, y = Diff.linear.value)) + geom_point(colour="red3") + theme_tidy() + xlab("Mean Temp"), filename = gsub("", "", paste("figures/AvgTempMean/", unique(as.character(.$Study.ID)),"_",unique(as.character(.$study.trait)), ".pdf", sep="")), device="pdf"))
 
 no.var.PET.study.number <- length(unique(dat.PET.novariance$Study.ID))
 total.study.number <- length(unique(dat$Study.ID))
@@ -320,7 +333,7 @@ PET.diff.fig <- ggplot(PET.diff.all, aes(x = climatevar, y = post.mean)) +
 
 # Temperature Gradients
 temp.grad.fig.all.vcv <- ggplot(temp.grad.all, aes(x = climatevar, y = meanVCV)) +
-  scale_y_continuous(limits = c(-0.75, 0.75)) +
+  scale_y_continuous(limits = c(-0.05, 0.75)) +
   geom_errorbar(aes(ymin=(VCVlower), ymax=(VCVupper)), width=0.2, colour = "darkgrey") +
   geom_point(size = 2, colour = "darkgrey") +
   geom_hline(yintercept = 0) +
@@ -335,7 +348,7 @@ temp.grad.fig.all.vcv <- ggplot(temp.grad.all, aes(x = climatevar, y = meanVCV))
 
 # Temperature Differentials
 temp.diff.fig.all.vcv <- ggplot(temp.diff.all, aes(x = climatevar, y = meanVCV)) +
-  scale_y_continuous(limits = c(-0.75, 0.75)) +
+  scale_y_continuous(limits = c(-0.05, 0.75)) +
   geom_errorbar(aes(ymin=(VCVlower), ymax=(VCVupper)), width=0.2, colour = "darkgrey") +
   geom_point(size = 2, colour = "darkgrey") +
   geom_hline(yintercept = 0) +
@@ -350,7 +363,7 @@ temp.diff.fig.all.vcv <- ggplot(temp.diff.all, aes(x = climatevar, y = meanVCV))
 
 # Precipitation Gradients
 precip.grad.fig.all.vcv <- ggplot(precip.grad.all, aes(x = climatevar, y = meanVCV)) +
-  scale_y_continuous(limits = c(-0.75, 0.75)) +
+  scale_y_continuous(limits = c(-0.05, 0.75)) +
   geom_errorbar(aes(ymin=(VCVlower), ymax=(VCVupper)), width=0.2, colour = "darkgrey") +
   geom_point(size = 2, colour = "darkgrey") +
   geom_hline(yintercept = 0) +
@@ -365,7 +378,7 @@ precip.grad.fig.all.vcv <- ggplot(precip.grad.all, aes(x = climatevar, y = meanV
 
 # Preciptation Differentials
 precip.diff.fig.all.vcv <- ggplot(precip.diff.all, aes(x = climatevar, y = meanVCV)) +
-  scale_y_continuous(limits = c(-0.75, 0.75)) +
+  scale_y_continuous(limits = c(-0.05, 0.75)) +
   geom_errorbar(aes(ymin=(VCVlower), ymax=(VCVupper)), width=0.2, colour = "darkgrey") +
   geom_point(size = 2, colour = "darkgrey") +
   geom_hline(yintercept = 0) +
@@ -380,7 +393,7 @@ precip.diff.fig.all.vcv <- ggplot(precip.diff.all, aes(x = climatevar, y = meanV
 
 # PET Gradients
 PET.grad.fig.all.vcv <- ggplot(PET.grad.all, aes(x = climatevar, y = meanVCV)) +
-  scale_y_continuous(limits = c(-0.75, 0.75)) +
+  scale_y_continuous(limits = c(-0.05, 0.75)) +
   geom_errorbar(aes(ymin=(VCVlower), ymax=(VCVupper)), width=0.2, colour = "darkgrey") +
   geom_point(size = 2, colour = "darkgrey") +
   geom_hline(yintercept = 0) +
@@ -395,7 +408,7 @@ PET.grad.fig.all.vcv <- ggplot(PET.grad.all, aes(x = climatevar, y = meanVCV)) +
 
 # PET Differentials
 PET.diff.fig.all.vcv <- ggplot(PET.diff.all, aes(x = climatevar, y = meanVCV)) +
-  scale_y_continuous(limits = c(-0.75, 0.75)) +
+  scale_y_continuous(limits = c(-0.05, 0.75)) +
   geom_errorbar(aes(ymin=(VCVlower), ymax=(VCVupper)), width=0.2, colour = "darkgrey") +
   geom_point(size = 2, colour = "darkgrey") +
   geom_hline(yintercept = 0) +
@@ -545,7 +558,7 @@ PET.diff.fig.invert <- ggplot(PET.diff.invert, aes(x = climatevar, y = post.mean
 
 # Temperature Gradients
 temp.grad.fig.invert.vcv <- ggplot(temp.grad.invert, aes(x = climatevar, y = meanVCV)) +
-  scale_y_continuous(limits = c(-1.2, 1.2)) +
+  scale_y_continuous(limits = c(-0.05, 1.2)) +
   geom_errorbar(aes(ymin=(VCVlower), ymax=(VCVupper)), width=0.2, colour = "orange") +
   geom_point(size = 2, colour = "orange") +
   geom_hline(yintercept = 0) +
@@ -560,7 +573,7 @@ temp.grad.fig.invert.vcv <- ggplot(temp.grad.invert, aes(x = climatevar, y = mea
 
 # Temperature Differentials
 temp.diff.fig.invert.vcv <- ggplot(temp.diff.invert, aes(x = climatevar, y = meanVCV)) +
-  scale_y_continuous(limits = c(-1.2, 1.2)) +
+  scale_y_continuous(limits = c(-0.05, 1.2)) +
   geom_errorbar(aes(ymin=(VCVlower), ymax=(VCVupper)), width=0.2, colour = "orange") +
   geom_point(size = 2, colour = "orange") +
   geom_hline(yintercept = 0) +
@@ -575,7 +588,7 @@ temp.diff.fig.invert.vcv <- ggplot(temp.diff.invert, aes(x = climatevar, y = mea
 
 # Precipitation Gradients
 precip.grad.fig.invert.vcv <- ggplot(precip.grad.invert, aes(x = climatevar, y = meanVCV)) +
-  scale_y_continuous(limits = c(-1.2, 1.2)) +
+  scale_y_continuous(limits = c(-0.05, 1.2)) +
   geom_errorbar(aes(ymin=(VCVlower), ymax=(VCVupper)), width=0.2, colour = "orange") +
   geom_point(size = 2, colour = "orange") +
   geom_hline(yintercept = 0) +
@@ -590,7 +603,7 @@ precip.grad.fig.invert.vcv <- ggplot(precip.grad.invert, aes(x = climatevar, y =
 
 # Preciptation Differentials
 precip.diff.fig.invert.vcv <- ggplot(precip.diff.invert, aes(x = climatevar, y = meanVCV)) +
-  scale_y_continuous(limits = c(-1.2, 1.2)) +
+  scale_y_continuous(limits = c(-0.05, 1.2)) +
   geom_errorbar(aes(ymin=(VCVlower), ymax=(VCVupper)), width=0.2, colour = "orange") +
   geom_point(size = 2, colour = "orange") +
   geom_hline(yintercept = 0) +
@@ -605,7 +618,7 @@ precip.diff.fig.invert.vcv <- ggplot(precip.diff.invert, aes(x = climatevar, y =
 
 # PET Gradients
 PET.grad.fig.invert.vcv <- ggplot(PET.grad.invert, aes(x = climatevar, y = meanVCV)) +
-  scale_y_continuous(limits = c(-1.2, 1.2)) +
+  scale_y_continuous(limits = c(-0.05, 1.2)) +
   geom_errorbar(aes(ymin=(VCVlower), ymax=(VCVupper)), width=0.2, colour = "orange") +
   geom_point(size = 2, colour = "orange") +
   geom_hline(yintercept = 0) +
@@ -620,7 +633,7 @@ PET.grad.fig.invert.vcv <- ggplot(PET.grad.invert, aes(x = climatevar, y = meanV
 
 # PET Differentials
 PET.diff.fig.invert.vcv <- ggplot(PET.diff.invert, aes(x = climatevar, y = meanVCV)) +
-  scale_y_continuous(limits = c(-1.2, 1.2)) +
+  scale_y_continuous(limits = c(-0.05, 1.2)) +
   geom_errorbar(aes(ymin=(VCVlower), ymax=(VCVupper)), width=0.2, colour = "orange") +
   geom_point(size = 2, colour = "orange") +
   geom_hline(yintercept = 0) +
@@ -717,7 +730,7 @@ PET.diff.fig.plant <- ggplot(PET.diff.plant, aes(x = climatevar, y = post.mean))
 
 # Temperature Gradients
 temp.grad.fig.plant.vcv <- ggplot(temp.grad.plant, aes(x = climatevar, y = meanVCV)) +
-  scale_y_continuous(limits = c(-1.2, 1.2)) +
+  scale_y_continuous(limits = c(-0.05, 1.2)) +
   geom_errorbar(aes(ymin=(VCVlower), ymax=(VCVupper)), width=0.2, colour = "green4") +
   geom_point(size = 2, colour = "green4") +
   geom_hline(yintercept = 0) +
@@ -732,7 +745,7 @@ temp.grad.fig.plant.vcv <- ggplot(temp.grad.plant, aes(x = climatevar, y = meanV
 
 # Temperature Differentials
 temp.diff.fig.plant.vcv <- ggplot(temp.diff.plant, aes(x = climatevar, y = meanVCV)) +
-  scale_y_continuous(limits = c(-1.2, 1.2)) +
+  scale_y_continuous(limits = c(-0.05, 1.2)) +
   geom_errorbar(aes(ymin=(VCVlower), ymax=(VCVupper)), width=0.2, colour = "green4") +
   geom_point(size = 2, colour = "green4") +
   geom_hline(yintercept = 0) +
@@ -747,7 +760,7 @@ temp.diff.fig.plant.vcv <- ggplot(temp.diff.plant, aes(x = climatevar, y = meanV
 
 # Precipitation Gradients
 precip.grad.fig.plant.vcv <- ggplot(precip.grad.plant, aes(x = climatevar, y = meanVCV)) +
-  scale_y_continuous(limits = c(-1.2, 1.2)) +
+  scale_y_continuous(limits = c(-0.05, 1.2)) +
   geom_errorbar(aes(ymin=(VCVlower), ymax=(VCVupper)), width=0.2, colour = "green4") +
   geom_point(size = 2, colour = "green4") +
   geom_hline(yintercept = 0) +
@@ -762,7 +775,7 @@ precip.grad.fig.plant.vcv <- ggplot(precip.grad.plant, aes(x = climatevar, y = m
 
 # Preciptation Differentials
 precip.diff.fig.plant.vcv <- ggplot(precip.diff.plant, aes(x = climatevar, y = meanVCV)) +
-  scale_y_continuous(limits = c(-1.2, 1.2)) +
+  scale_y_continuous(limits = c(-0.05, 1.2)) +
   geom_errorbar(aes(ymin=(VCVlower), ymax=(VCVupper)), width=0.2, colour = "green4") +
   geom_point(size = 2, colour = "green4") +
   geom_hline(yintercept = 0) +
@@ -777,7 +790,7 @@ precip.diff.fig.plant.vcv <- ggplot(precip.diff.plant, aes(x = climatevar, y = m
 
 # PET Gradients
 PET.grad.fig.plant.vcv <- ggplot(PET.grad.plant, aes(x = climatevar, y = meanVCV)) +
-  scale_y_continuous(limits = c(-1.2, 1.2)) +
+  scale_y_continuous(limits = c(-0.05, 1.2)) +
   geom_errorbar(aes(ymin=(VCVlower), ymax=(VCVupper)), width=0.2, colour = "green4") +
   geom_point(size = 2, colour = "green4") +
   geom_hline(yintercept = 0) +
@@ -792,7 +805,7 @@ PET.grad.fig.plant.vcv <- ggplot(PET.grad.plant, aes(x = climatevar, y = meanVCV
 
 # PET Differentials
 PET.diff.fig.plant.vcv <- ggplot(PET.diff.plant, aes(x = climatevar, y = meanVCV)) +
-  scale_y_continuous(limits = c(-1.2, 1.2)) +
+  scale_y_continuous(limits = c(-0.05, 1.2)) +
   geom_errorbar(aes(ymin=(VCVlower), ymax=(VCVupper)), width=0.2, colour = "green4") +
   geom_point(size = 2, colour = "green4") +
   geom_hline(yintercept = 0) +
@@ -889,7 +902,7 @@ PET.diff.fig.vert <- ggplot(PET.diff.vert, aes(x = climatevar, y = post.mean)) +
 
 # Temperature Gradients
 temp.grad.fig.vert.vcv <- ggplot(temp.grad.vert, aes(x = climatevar, y = meanVCV)) +
-  scale_y_continuous(limits = c(-1.2, 1.2)) +
+  scale_y_continuous(limits = c(-0.05, 1.2)) +
   geom_errorbar(aes(ymin=(VCVlower), ymax=(VCVupper)), width=0.2, colour = "blue3") +
   geom_point(size = 2, colour = "blue3") +
   geom_hline(yintercept = 0) +
@@ -904,7 +917,7 @@ temp.grad.fig.vert.vcv <- ggplot(temp.grad.vert, aes(x = climatevar, y = meanVCV
 
 # Temperature Differentials
 temp.diff.fig.vert.vcv <- ggplot(temp.diff.vert, aes(x = climatevar, y = meanVCV)) +
-  scale_y_continuous(limits = c(-1.2, 1.2)) +
+  scale_y_continuous(limits = c(-0.05, 1.2)) +
   geom_errorbar(aes(ymin=(VCVlower), ymax=(VCVupper)), width=0.2, colour = "blue3") +
   geom_point(size = 2, colour = "blue3") +
   geom_hline(yintercept = 0) +
@@ -919,7 +932,7 @@ temp.diff.fig.vert.vcv <- ggplot(temp.diff.vert, aes(x = climatevar, y = meanVCV
 
 # Precipitation Gradients
 precip.grad.fig.vert.vcv <- ggplot(precip.grad.vert, aes(x = climatevar, y = meanVCV)) +
-  scale_y_continuous(limits = c(-1.2, 1.2)) +
+  scale_y_continuous(limits = c(-0.05, 1.2)) +
   geom_errorbar(aes(ymin=(VCVlower), ymax=(VCVupper)), width=0.2, colour = "blue3") +
   geom_point(size = 2, colour = "blue3") +
   geom_hline(yintercept = 0) +
@@ -934,7 +947,7 @@ precip.grad.fig.vert.vcv <- ggplot(precip.grad.vert, aes(x = climatevar, y = mea
 
 # Preciptation Differentials
 precip.diff.fig.vert.vcv <- ggplot(precip.diff.vert, aes(x = climatevar, y = meanVCV)) +
-  scale_y_continuous(limits = c(-1.2, 1.2)) +
+  scale_y_continuous(limits = c(-0.05, 1.2)) +
   geom_errorbar(aes(ymin=(VCVlower), ymax=(VCVupper)), width=0.2, colour = "blue3") +
   geom_point(size = 2, colour = "blue3") +
   geom_hline(yintercept = 0) +
@@ -949,7 +962,7 @@ precip.diff.fig.vert.vcv <- ggplot(precip.diff.vert, aes(x = climatevar, y = mea
 
 # PET Gradients
 PET.grad.fig.vert.vcv <- ggplot(PET.grad.vert, aes(x = climatevar, y = meanVCV)) +
-  scale_y_continuous(limits = c(-1.2, 1.2)) +
+  scale_y_continuous(limits = c(-0.05, 1.2)) +
   geom_errorbar(aes(ymin=(VCVlower), ymax=(VCVupper)), width=0.2, colour = "blue3") +
   geom_point(size = 2, colour = "blue3") +
   geom_hline(yintercept = 0) +
@@ -964,7 +977,7 @@ PET.grad.fig.vert.vcv <- ggplot(PET.grad.vert, aes(x = climatevar, y = meanVCV))
 
 # PET Differentials
 PET.diff.fig.vert.vcv <- ggplot(PET.diff.vert, aes(x = climatevar, y = meanVCV)) +
-  scale_y_continuous(limits = c(-1.2, 1.2)) +
+  scale_y_continuous(limits = c(-0.05, 1.2)) +
   geom_errorbar(aes(ymin=(VCVlower), ymax=(VCVupper)), width=0.2, colour = "blue3") +
   geom_point(size = 2, colour = "blue3") +
   geom_hline(yintercept = 0) +
@@ -1025,7 +1038,7 @@ sel.vert <- ggplot(subset(dat, Taxon.group == "V")) +
 
 grid.arrange(sel.invert, sel.plant, sel.vert, ncol = 1, nrow = 3)
 
-# Fitness measures figure ----
+# Fitness measures histogram figure ----
 
 sel.class.invert <- ggplot(subset(dat, Taxon.group == "I")) +
   geom_bar(aes(Generic.Trait.Class), alpha = 0.8, fill = "orange") +
@@ -1055,6 +1068,80 @@ sel.class.vert <- ggplot(subset(dat, Taxon.group == "V")) +
         axis.line.y = element_line(color="black", size = 0.5))
 
 grid.arrange(sel.class.invert, sel.class.plant, sel.class.vert)
+
+# Fitness measures figure Grad.linear.value ----
+
+sel.class.invert.grad <- ggplot(subset(dat.grad, Taxon.group == "I")) +
+  geom_col(aes(x = Generic.Trait.Class, y = Grad.linear.value), fill = "orange") +
+  scale_x_discrete(limits=c("BE", "MO", "O", "OLH", "OMO", "PC", "Phenology", "Size")) +
+  geom_hline(yintercept=0) + 
+  coord_cartesian(ylim=c(-100, 100)) + 
+  annotate("text", x = 0.75, y = 100, label = "A. invertebrates", size=4, hjust=0) +
+  theme_tidy() +
+  theme(legend.position="none") +
+  theme(axis.line.x = element_line(color="black", size = 0.5),
+        axis.line.y = element_line(color="black", size = 0.5))
+
+sel.class.plant.grad <- ggplot(subset(dat.grad, Taxon.group == "P")) +
+  geom_col(aes(x = Generic.Trait.Class, y = Grad.linear.value), fill = "green4") +
+  scale_x_discrete(limits=c("BE", "MO", "O", "OLH", "OMO", "PC", "Phenology", "Size")) +
+  geom_hline(yintercept=0) + 
+  coord_cartesian(ylim=c(-100, 100)) + 
+  annotate("text", x = 0.75, y = 100, label = "B. Plants", size=4, hjust=0) +
+  theme_tidy() +
+  theme(legend.position="none") +
+  theme(axis.line.x = element_line(color="black", size = 0.5),
+        axis.line.y = element_line(color="black", size = 0.5))
+
+sel.class.vert.grad <- ggplot(subset(dat.grad, Taxon.group == "V")) +
+  geom_col(aes(x = Generic.Trait.Class, y = Grad.linear.value), fill = "blue3") +
+  scale_x_discrete(limits=c("BE", "MO", "O", "OLH", "OMO", "PC", "Phenology", "Size")) +
+  geom_hline(yintercept=0) + 
+  coord_cartesian(ylim=c(-100, 100)) + 
+  annotate("text", x = 0.75, y = 100, label = "C. Vertebrates", size=4, hjust=0) +
+  theme_tidy() +
+  theme(legend.position="none") +
+  theme(axis.line.x = element_line(color="black", size = 0.5),
+        axis.line.y = element_line(color="black", size = 0.5))
+
+grid.arrange(sel.class.invert.grad, sel.class.plant.grad, sel.class.vert.grad)
+
+# Fitness measures figure Diff.linear.value ----
+
+sel.class.invert.diff <- ggplot(subset(dat.diff, Taxon.group == "I")) +
+  geom_col(aes(x = Generic.Trait.Class, y = Diff.linear.value), fill = "orange") +
+  scale_x_discrete(limits=c("BE", "MO", "O", "OLH", "OMO", "PC", "Phenology", "Size")) +
+  geom_hline(yintercept=0) + 
+  coord_cartesian(ylim=c(-100, 100)) + 
+  annotate("text", x = 0.75, y = 100, label = "A. invertebrates", size=4, hjust=0) +
+  theme_tidy() +
+  theme(legend.position="none") +
+  theme(axis.line.x = element_line(color="black", size = 0.5),
+        axis.line.y = element_line(color="black", size = 0.5))
+
+sel.class.plant.diff <- ggplot(subset(dat.diff, Taxon.group == "P")) +
+  geom_col(aes(x = Generic.Trait.Class, y = Diff.linear.value), fill = "green4") +
+  scale_x_discrete(limits=c("BE", "MO", "O", "OLH", "OMO", "PC", "Phenology", "Size")) +
+  geom_hline(yintercept=0) + 
+  coord_cartesian(ylim=c(-100, 100)) + 
+  annotate("text", x = 0.75, y = 100, label = "B. Plants", size=4, hjust=0) +
+  theme_tidy() +
+  theme(legend.position="none") +
+  theme(axis.line.x = element_line(color="black", size = 0.5),
+        axis.line.y = element_line(color="black", size = 0.5))
+
+sel.class.vert.diff <- ggplot(subset(dat.diff, Taxon.group == "V")) +
+  geom_col(aes(x = Generic.Trait.Class, y = Diff.linear.value), fill = "blue3") +
+  scale_x_discrete(limits=c("BE", "MO", "O", "OLH", "OMO", "PC", "Phenology", "Size")) +
+  geom_hline(yintercept=0) + 
+  coord_cartesian(ylim=c(-100, 100)) + 
+  annotate("text", x = 0.75, y = 100, label = "C. Vertebrates", size=4, hjust=0) +
+  theme_tidy() +
+  theme(legend.position="none") +
+  theme(axis.line.x = element_line(color="black", size = 0.5),
+        axis.line.y = element_line(color="black", size = 0.5))
+
+grid.arrange(sel.class.invert.diff, sel.class.plant.diff, sel.class.vert.diff)
 
 # Map figure ----
 
