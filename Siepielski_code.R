@@ -994,7 +994,7 @@ PET.diff.fig.vert.vcv <- ggplot(PET.diff.vert, aes(x = climatevar, y = meanVCV))
 
 pdf(file="figures/Siepielski_VCV_taxa.pdf", width = 15, height = 7)
 
-grid.arrange(temp.grad.fig.invert.vcv, temp.diff.fig.invert.vcv, precip.grad.fig.invert.vcv, precip.diff.fig.invert.vcv, PET.grad.fig.invert.vcv, PET.diff.fig.invert.vcv, temp.grad.fig.plant.vcv, temp.diff.fig.plant.vcv, precip.grad.fig.plant.vcv, precip.diff.fig.plant.vcv, PET.grad.fig.plant.vcv, PET.diff.fig.plant.vcv, temp.grad.fig.vert.vcv, temp.diff.fig.vert.vcv, precip.grad.fig.vert.vcv, precip.grad.fig.vert.vcv, PET.grad.fig.vert.vcv, PET.diff.fig.vert.vcv, ncol = 6, left = "Variance - Covariance Est.", bottom = "Climate Variables")
+grid.arrange(temp.grad.fig.invert.vcv, temp.diff.fig.invert.vcv, precip.grad.fig.invert.vcv, precip.diff.fig.invert.vcv, PET.grad.fig.invert.vcv, PET.diff.fig.invert.vcv, temp.grad.fig.plant.vcv, temp.diff.fig.plant.vcv, precip.grad.fig.plant.vcv, precip.diff.fig.plant.vcv, PET.grad.fig.plant.vcv, PET.diff.fig.plant.vcv, temp.grad.fig.vert.vcv, temp.diff.fig.vert.vcv, precip.grad.fig.vert.vcv, precip.diff.fig.vert.vcv, PET.grad.fig.vert.vcv, PET.diff.fig.vert.vcv, ncol = 6, left = "Variance - Covariance Est.", bottom = "Climate Variables")
 
 dev.off()
 
