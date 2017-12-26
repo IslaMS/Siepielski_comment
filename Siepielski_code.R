@@ -58,9 +58,25 @@ dat$lmer.units[2] <- "1"
 dat$study.trait <- as.factor(paste(dat$Study.ID, "_", dat$Trait, "_", dat$Fitness.Measure, "_", dat$Sex, "_", dat$age, "_", dat$Season))
 dat <- dat[order(dat$study.trait),]
 
+dat.grad <- dat %>% filter(!is.na(Grad.linear.value))
+dat.diff <- dat %>% filter(!is.na(Diff.linear.value))
+
+# Takes a while to run - generates many figures
+# # Plot figures of PET data by Study.ID and study.trait
+# dat.grad %>% group_by(Study.ID, study.trait) %>% filter(is.finite(Grad.linear.value)) %>% do(ggsave(ggplot(.,aes(x = .$AvgPET, y = .$Grad.linear.value)) + geom_point(colour="darkblue") + theme_tidy() + xlab("Mean PET"), filename = gsub("", "", paste("figures/PET/", unique(as.character(.$Study.ID)),"_",unique(as.character(.$study.trait)), ".pdf", sep="")), device="pdf"))
+# dat.diff %>% group_by(Study.ID, study.trait) %>% filter(is.finite(Diff.linear.value)) %>% do(ggsave(ggplot(.,aes(x = .$AvgPET, y = .$Diff.linear.value)) + geom_point(colour="red3") + theme_tidy() + xlab("Mean PET"), filename = gsub("", "", paste("figures/PET/", unique(as.character(.$Study.ID)),"_",unique(as.character(.$study.trait)), ".pdf", sep="")), device="pdf"))
+# 
+# # Plot figures of AvgPrecip data by Study.ID and study.trait
+# dat.grad %>% group_by(Study.ID, study.trait) %>% filter(is.finite(Grad.linear.value)) %>% do(ggsave(ggplot(.,aes(x = .$AvgPrecip, y = .$Grad.linear.value)) + geom_point(colour="darkblue") + theme_tidy() + xlab("Mean Precip"), filename = gsub("", "", paste("figures/AvgPrecip/", unique(as.character(.$Study.ID)),"_",unique(as.character(.$study.trait)), ".pdf", sep="")), device="pdf"))
+# dat.diff %>% group_by(Study.ID, study.trait) %>% filter(is.finite(Diff.linear.value)) %>% do(ggsave(ggplot(.,aes(x = .$AvgPrecip, y = .$Diff.linear.value)) + geom_point(colour="red3") + theme_tidy() + xlab("Mean Precip"), filename = gsub("", "", paste("figures/AvgPrecip/", unique(as.character(.$Study.ID)),"_",unique(as.character(.$study.trait)), ".pdf", sep="")), device="pdf"))
+# 
+# # Plot figures of AvgTempMean data by Study.ID and study.trait
+# dat %>% group_by(Study.ID, study.trait) %>% filter(is.finite(Grad.linear.value)) %>% do(ggsave(ggplot(.,aes(x = .$AvgTempMean, y = .$Grad.linear.value)) + geom_point(colour="darkblue") + theme_tidy() + xlab("Mean Temp"), filename = gsub("", "", paste("figures/AvgTempMean/", unique(as.character(.$Study.ID)),"_",unique(as.character(.$study.trait)), ".pdf", sep="")), device="pdf"))
+# dat %>% group_by(Study.ID, study.trait) %>% filter(is.finite(Diff.linear.value)) %>% do(ggsave(ggplot(.,aes(x = .$AvgTempMean, y = .$Diff.linear.value)) + geom_point(colour="red3") + theme_tidy() + xlab("Mean Temp"), filename = gsub("", "", paste("figures/AvgTempMean/", unique(as.character(.$Study.ID)),"_",unique(as.character(.$study.trait)), ".pdf", sep="")), device="pdf"))
+
 # Remove rows wth misisng data
-dat.grad <- subset(dat, !is.na(Grad.linear.value) & !is.na(Grad.linear.StErr) & !is.na(AvgTempMean) & !is.na(SDTempMean) & !is.na(MinTempMin) & !is.na(MaxTempMax) & !is.na(AvgPrecip) & !is.na(MaxPrecip) & !is.na(MinPrecip) & !is.na(SDPrecip))
-dat.diff <- subset(dat, !is.na(Diff.linear.value) & !is.na(Diff.linear.StErr) & !is.na(AvgTempMean) & !is.na(SDTempMean) & !is.na(MinTempMin) & !is.na(MaxTempMax) & !is.na(AvgPrecip) & !is.na(MaxPrecip) & !is.na(MinPrecip) & !is.na(SDPrecip))
+dat.grad <- dat.grad %>% filter(!is.na(Grad.linear.value) & !is.na(Grad.linear.StErr) & !is.na(AvgTempMean) & !is.na(SDTempMean) & !is.na(MinTempMin) & !is.na(MaxTempMax) & !is.na(AvgPrecip) & !is.na(MaxPrecip) & !is.na(MinPrecip) & !is.na(SDPrecip))
+dat.diff <- dat.diff %>% filter(!is.na(Diff.linear.value) & !is.na(Diff.linear.StErr) & !is.na(AvgTempMean) & !is.na(SDTempMean) & !is.na(MinTempMin) & !is.na(MaxTempMax) & !is.na(AvgPrecip) & !is.na(MaxPrecip) & !is.na(MinPrecip) & !is.na(SDPrecip))
 
 # Remove data with less than three values
 dat.grad <- dat.grad %>% group_by(Study.ID, study.trait) %>% filter((length(unique(AvgPET)) > 2) & (sd(AvgPET) > 0) & (length(unique(AvgTempMean)) > 2) & (sd(AvgTempMean) > 0) & (length(unique(AvgPrecip)) > 2) & (sd(AvgPrecip) > 0))
@@ -73,24 +89,15 @@ STD.diff <- function(x){unlist(tapply(x, dat.diff$study.trait, function(x){if(le
 
 dat.PET.novariance <- dat %>% group_by(Study.ID, study.trait) %>% mutate(range = (max(AvgPET)-min(AvgPET))) %>% ungroup() %>% distinct(Study.ID, range) %>% subset(range == 0) %>% arrange(Study.ID)
 
-# Plot figures of PET data by Study.ID and study.trait
-dat.grad %>% group_by(Study.ID, study.trait) %>% filter(is.finite(Grad.linear.value)) %>% do(ggsave(ggplot(.,aes(x = AvgPET, y = Grad.linear.value)) + geom_point(colour="darkblue") + theme_tidy() + xlab("Mean PET"), filename = gsub("", "", paste("figures/PET/", unique(as.character(.$Study.ID)),"_",unique(as.character(.$study.trait)), ".pdf", sep="")), device="pdf"))
-dat.diff %>% group_by(Study.ID, study.trait) %>% filter(is.finite(Diff.linear.value)) %>% do(ggsave(ggplot(.,aes(x = AvgPET, y = Diff.linear.value)) + geom_point(colour="red3") + theme_tidy() + xlab("Mean PET"), filename = gsub("", "", paste("figures/PET/", unique(as.character(.$Study.ID)),"_",unique(as.character(.$study.trait)), ".pdf", sep="")), device="pdf"))
-
-# Plot figures of AvgPrecip data by Study.ID and study.trait
-dat.grad %>% group_by(Study.ID, study.trait) %>% filter(is.finite(Grad.linear.value)) %>% do(ggsave(ggplot(.,aes(x = AvgPrecip, y = Grad.linear.value)) + geom_point(colour="darkblue") + theme_tidy() + xlab("Mean Precip"), filename = gsub("", "", paste("figures/AvgPrecip/", unique(as.character(.$Study.ID)),"_",unique(as.character(.$study.trait)), ".pdf", sep="")), device="pdf"))
-dat.diff %>% group_by(Study.ID, study.trait) %>% filter(is.finite(Diff.linear.value)) %>% do(ggsave(ggplot(.,aes(x = AvgPrecip, y = Diff.linear.value)) + geom_point(colour="red3") + theme_tidy() + xlab("Mean Precip"), filename = gsub("", "", paste("figures/AvgPrecip/", unique(as.character(.$Study.ID)),"_",unique(as.character(.$study.trait)), ".pdf", sep="")), device="pdf"))
-
-# Plot figures of AvgTempMean data by Study.ID and study.trait
-dat. %>% group_by(Study.ID, study.trait) %>% filter(is.finite(Grad.linear.value)) %>% do(ggsave(ggplot(.,aes(x = AvgTempMean, y = Grad.linear.value)) + geom_point(colour="darkblue") + theme_tidy() + xlab("Mean Temp"), filename = gsub("", "", paste("figures/AvgTempMean/", unique(as.character(.$Study.ID)),"_",unique(as.character(.$study.trait)), ".pdf", sep="")), device="pdf"))
-dat %>% group_by(Study.ID, study.trait) %>% filter(is.finite(Diff.linear.value)) %>% do(ggsave(ggplot(.,aes(x = AvgTempMean, y = Diff.linear.value)) + geom_point(colour="red3") + theme_tidy() + xlab("Mean Temp"), filename = gsub("", "", paste("figures/AvgTempMean/", unique(as.character(.$Study.ID)),"_",unique(as.character(.$study.trait)), ".pdf", sep="")), device="pdf"))
-
+# Check data records
 no.var.PET.study.number <- length(unique(dat.PET.novariance$Study.ID))
 total.study.number <- length(unique(dat$Study.ID))
 
 # Apply standardising fuction to all climate variables with variance
+dat.grad <- as.data.frame(dat.grad)
 data.grad <- dat.grad %>% mutate(MinTempMinStd = STD.grad(MinTempMin), MaxTempMaxStd = STD.grad(MaxTempMax), AvgTempMeanStd = STD.grad(AvgTempMean), SDTempMeanStd = STD.grad(SDTempMean), MinPrecipStd = STD.grad(MinPrecip), MaxPrecipStd = STD.grad(MaxPrecip), AvgPrecipStd = STD.grad(AvgPrecip), SDPrecipStd = STD.grad(SDPrecip))
 
+dat.diff <- as.data.frame(dat.diff)
 data.diff <- dat.diff %>% mutate(MinTempMinStd = STD.diff(MinTempMin), MaxTempMaxStd = STD.diff(MaxTempMax), AvgTempMeanStd = STD.diff(AvgTempMean), SDTempMeanStd = STD.diff(SDTempMean), MinPrecipStd = STD.diff(MinPrecip), MaxPrecipStd = STD.diff(MaxPrecip), AvgPrecipStd = STD.diff(AvgPrecip), SDPrecipStd = STD.diff(SDPrecip))
 
 data.grad <- arrange(data.grad, Final.Index)
